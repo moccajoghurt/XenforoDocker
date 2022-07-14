@@ -1,0 +1,38 @@
+version: '2'
+services:
+
+  nginx:
+    image: nginx:alpine
+    ports:
+    - "80:80"
+    volumes:
+        - ./src:/var/www/html
+        - ./nginx_conf/default.conf:/etc/nginx/conf.d/default.conf
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+
+  xf2-php-fpm:
+    build:
+      context: ./
+      dockerfile: ./docker/xf2-php-fpm.dockerfile
+    working_dir: /var/www/html
+    volumes:
+      - ./src:/var/www/html
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+
+  xf2-database:
+    image: mysql
+    volumes:
+      - xenforodb:/var/lib/mysql
+      - ./dump:/docker-entrypoint-initdb.d
+    environment:
+      MYSQL_DATABASE: xenforoDB
+      MYSQL_USER: user
+      MYSQL_PASSWORD: password
+      MYSQL_ROOT_PASSWORD: password
+    ports:
+      - "33061:3306"
+
+volumes:
+  xenforodb:
